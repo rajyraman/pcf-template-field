@@ -1,2 +1,2 @@
-# pcf-generator
-Generate PCF Repo
+# PCF Component
+Details about PCF Component
