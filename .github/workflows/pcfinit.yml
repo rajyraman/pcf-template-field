@@ -1,0 +1,62 @@
+name: pcf-init
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
+    steps:
+      - uses: actions/checkout@v2
+        
+      - id: checkpcfconfig
+        run: |
+          Test-Path pcfconfig.json
+          echo "::set-output name=exists::$(Test-Path pcfconfig.json)"
+  
+      - name: Register Nuget Provider
+        if: steps.checkpcfconfig.outputs.exists != 'True'
+        run: Register-PackageSource -provider NuGet -name nuget -location https://www.nuget.org/api/v2
+        
+      - run: echo "::set-env name=GIT_REDIRECT_STDERR::2>&1"
+        if: steps.checkpcfconfig.outputs.exists != 'True'
+        
+      - name: Use Node.js ${{ matrix.node-version }}
+        if: steps.checkpcfconfig.outputs.exists != 'True'
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+                               
+      - name: Install PCF CLI
+        if: steps.checkpcfconfig.outputs.exists != 'True'
+        run: |
+          Install-Package -Name Microsoft.PowerApps.CLI -source https://www.nuget.org/api/v2 -Destination . -Confirm:$false -Verbose -Force
+          $pcfPath = "$(Resolve-Path ".\Microsoft.PowerApps.CLI*\tools" | Select -ExpandProperty Path)\pac"
+          $pcfName =  $('${{ github.repository }}' -replace '${{ github.repository_owner }}/', '' -replace '[^a-zA-Z]', '')
+          Remove-Item .gitignore -ErrorAction Ignore
+          & $pcfPath pcf init -ns ${{ github.repository_owner }}.PCF.Components -n $pcfName -t field
+          npm install
+          mkdir Solution/$pcfName
+          cd Solution/$pcfName
+          & $pcfPath solution init -pn ${{ github.repository_owner }} -pp '${{ github.repository_owner }}'.Substring(0,3)
+          & $pcfPath solution add-reference -p ${{ github.workspace }}
+          cd ${{ github.workspace }}
+          Add-Content -Path .gitignore -Value ''
+          Add-Content -Path .gitignore -Value '/Microsoft.PowerApps.CLI*'
+          Add-Content -Path .gitignore -Value '/System.ComponentModel.Composition*'
+          Remove-Item .github/workflows/pcfinit.yml -Force
+          
+      - name: Commit PCF components to repo
+        if: steps.checkpcfconfig.outputs.exists != 'True'
+        run: |
+          Write-Host "****...Push code to repo...****"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add --all
+          git tag pcf-tempate -f
+          git commit -m "Add PCF Template"
+          git  -c http.extraheader="AUTHORIZATION: Bearer ${{ secrets.GITHUB_TOKEN }}" push origin master
