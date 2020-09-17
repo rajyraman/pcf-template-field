@@ -2,6 +2,11 @@ name: build
 
 on:
   workflow_dispatch:
+    inputs:
+     release:
+      description: 'Release Solution'
+      required: false
+      default: 'false'
   push:
     branches: [master]
     tags:
@@ -56,16 +61,15 @@ jobs:
       - run: npm run build --if-present
         if: steps.checkpcfconfig.outputs.exists == 'True'
 
-      - name: setup-msbuild
-        if: steps.checkpcfconfig.outputs.exists == 'True'
-        uses: microsoft/setup-msbuild@v1
-
       - name: MSBuild
         if: steps.checkpcfconfig.outputs.exists == 'True'
         working-directory: ${{ steps.checkpcfconfig.outputs.buildtarget }}
         run: |
-            msbuild /restore /t:rebuild
-            msbuild /restore /t:rebuild /p:Configuration=Release
+            $path = vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe | select-object -first 1
+            if ($path) {
+              & $path /restore /t:rebuild
+              & $path /restore /t:rebuild /p:Configuration=Release
+            }
 
       - name: Managed Solution Artifact ${{ steps.solution-unique-name.outputs.info }}_${{ steps.solution-version.outputs.info }}_managed.zip
         if: steps.checkpcfconfig.outputs.exists == 'True'
@@ -84,7 +88,7 @@ jobs:
       - name: Create Release ${{ steps.solution-unique-name.outputs.info }}_v${{ steps.solution-version.outputs.info }}
         id: create_release
         uses: actions/create-release@v1
-        if: contains(github.ref, 'refs/tags/v')
+        if: contains(github.ref, 'refs/tags/v') || github.event.inputs.release == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
