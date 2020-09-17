@@ -42,7 +42,7 @@ jobs:
           & $pcfPath solution add-reference -p ${{ github.workspace }}
           cd ${{ github.workspace }}
           Add-Content -Path .gitignore -Value "`r`n/Microsoft.PowerApps.CLI*`r`n/System.ComponentModel.Composition*" -NoNewLine
-          Set-Content -Path 'README.md' -Value "# $pcfName`r`n# Details about this component" -NoNewLine
+          Set-Content -Path 'README.md' -Value "# $pcfName`r`n`r`nDetails about this component" -NoNewLine
           Remove-Item .github/workflows/pcfinit.yml -Force
           
       - name: Commit PCF components to repo
