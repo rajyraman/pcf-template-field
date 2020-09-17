@@ -17,11 +17,7 @@ jobs:
         run: |
           Test-Path pcfconfig.json
           echo "::set-output name=exists::$(Test-Path pcfconfig.json)"
-  
-      - name: Register Nuget Provider
-        if: steps.checkpcfconfig.outputs.exists != 'True'
-        run: Register-PackageSource -provider NuGet -name nuget -location https://www.nuget.org/api/v2
-        
+         
       - run: echo "::set-env name=GIT_REDIRECT_STDERR::2>&1"
         if: steps.checkpcfconfig.outputs.exists != 'True'
         
@@ -34,7 +30,7 @@ jobs:
       - name: Install PCF CLI
         if: steps.checkpcfconfig.outputs.exists != 'True'
         run: |
-          Install-Package -Name Microsoft.PowerApps.CLI -source https://www.nuget.org/api/v2 -Destination . -Confirm:$false -Verbose -Force
+          nuget install Microsoft.PowerApps.CLI
           $pcfPath = "$(Resolve-Path ".\Microsoft.PowerApps.CLI*\tools" | Select -ExpandProperty Path)\pac"
           $pcfName =  $('${{ github.repository }}' -replace '${{ github.repository_owner }}/', '' -replace '[^a-zA-Z]', '')
           Remove-Item .gitignore -ErrorAction Ignore
