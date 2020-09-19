@@ -77,11 +77,8 @@ jobs:
         if: steps.checkpcfconfig.outputs.exists == 'True'
         working-directory: ${{ steps.checkpcfconfig.outputs.buildtarget }}
         run: |
-            $path = vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe | select-object -first 1
-            if ($path) {
-              & $path /restore /t:rebuild
-              & $path /restore /t:rebuild /p:Configuration=Release
-            }
+              dotnet msbuild /restore
+              dotnet msbuild /p:configuration=Release
 
       - name: Managed Solution Artifact ${{ steps.solution-unique-name.outputs.info }}_${{ steps.solution-version.outputs.info }}_managed.zip
         if: steps.checkpcfconfig.outputs.exists == 'True'
