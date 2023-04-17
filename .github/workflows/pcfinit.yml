@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [master]
-
-env:
-  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
   
 jobs:
   build:
@@ -59,4 +56,4 @@ jobs:
           git add --all
           git tag pcf-tempate -f
           git commit -m "Add PCF Template"
-          git -c http.extraheader="Authorization: Basic $(echo -n USERNAME:PAT_TOKEN | base64)" push origin master
+          git  -c http.extraheader="AUTHORIZATION: Bearer ${{ secrets.GITHUB_TOKEN }}" push origin master
