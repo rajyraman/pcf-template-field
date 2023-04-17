@@ -4,26 +4,31 @@ on:
   workflow_dispatch:
   push:
     branches: [master]
+
+env:
+  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  
 jobs:
   build:
     runs-on: windows-latest
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [16.x]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         
       - id: checkpcfconfig
         run: |
           Test-Path pcfconfig.json
-          echo "::set-output name=exists::$(Test-Path pcfconfig.json)"
+          echo "exists=$exists" >> $GITHUB_ENV
+          echo "$exists"
          
       - run: echo "GIT_REDIRECT_STDERR=2>&1" >> $GITHUB_ENV
         if: steps.checkpcfconfig.outputs.exists != 'True'
         
       - name: Use Node.js ${{ matrix.node-version }}
         if: steps.checkpcfconfig.outputs.exists != 'True'
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
                                
@@ -54,4 +59,4 @@ jobs:
           git add --all
           git tag pcf-tempate -f
           git commit -m "Add PCF Template"
-          git  -c http.extraheader="AUTHORIZATION: Bearer ${{ secrets.GITHUB_TOKEN }}" push origin master
+          git -c http.extraheader="Authorization: Basic $(echo -n USERNAME:PAT_TOKEN | base64)" push origin master
