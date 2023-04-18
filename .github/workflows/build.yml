@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [16.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -34,14 +34,14 @@ jobs:
           
       - name: Use Node.js ${{ matrix.node-version }}
         if: steps.checkpcfconfig.outputs.exists == 'True'
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: Solution Unique name
         if: steps.checkpcfconfig.outputs.exists == 'True'
         id: solution-unique-name
-        uses: mavrosxristoforos/get-xml-info@1.0
+        uses: mavrosxristoforos/get-xml-info@1.1.1
         with:
           xml-file: "${{ steps.checkpcfconfig.outputs.buildtarget }}/src/Other/Solution.xml"
           xpath: "//ImportExportXml/SolutionManifest/UniqueName"
@@ -49,7 +49,7 @@ jobs:
       - name: Solution Version
         if: steps.checkpcfconfig.outputs.exists == 'True'
         id: solution-version
-        uses: mavrosxristoforos/get-xml-info@1.0
+        uses: mavrosxristoforos/get-xml-info@1.1.1
         with:
           xml-file: '${{ steps.checkpcfconfig.outputs.buildtarget }}/src/Other/Solution.xml'
           xpath: "//ImportExportXml/SolutionManifest/Version"
