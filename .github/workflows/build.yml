@@ -20,10 +20,9 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]
-
+        node-version: [20.x]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         
       - id: checkpcfconfig
         run: |
@@ -34,7 +33,7 @@ jobs:
           
       - name: Use Node.js ${{ matrix.node-version }}
         if: steps.checkpcfconfig.outputs.exists == 'True'
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -59,7 +58,7 @@ jobs:
         run: |
           echo "::set-output name=dir::$(npm config get cache)"
       
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: ${{ steps.npm-cache.outputs.dir }}
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -82,14 +81,14 @@ jobs:
 
       - name: Managed Solution Artifact ${{ steps.solution-unique-name.outputs.info }}_${{ steps.solution-version.outputs.info }}_managed.zip
         if: steps.checkpcfconfig.outputs.exists == 'True'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.solution-unique-name.outputs.info }}_${{ steps.solution-version.outputs.info }}_managed.zip
           path: ${{ steps.checkpcfconfig.outputs.buildtarget }}/bin/Release/${{ steps.solution-unique-name.outputs.info }}.zip
 
       - name: Unmanaged Solution Artifact ${{ steps.solution-unique-name.outputs.info }}_${{ steps.solution-version.outputs.info }}_unmanaged.zip
         if: steps.checkpcfconfig.outputs.exists == 'True'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.solution-unique-name.outputs.info }}_${{ steps.solution-version.outputs.info }}_unmanaged.zip
           path: ${{ steps.checkpcfconfig.outputs.buildtarget }}/bin/Debug/${{ steps.solution-unique-name.outputs.info }}.zip
